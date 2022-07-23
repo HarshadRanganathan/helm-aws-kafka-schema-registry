@@ -1,0 +1,47 @@
+## If `Kafka.Enabled` is `false`, kafkaStore.overrideBootstrapServers must be provided for Master Election.
+## You can list load balanced service endpoint, or list of all brokers (which is hard in K8s).  e.g.:
+## overrideBootstrapServers: "PLAINTEXT://dozing-prawn-kafka-headless:9092"
+## Charts uses Kafka Coordinator Master Election: https://docs.confluent.io/current/schema-registry/docs/design.html#kafka-coordinator-master-election
+kafkaStore:
+  overrideBootstrapServers: "SSL://<broker-url>:9094,SSL://<broker-url>:9094,SSL://<broker-url>:9094"
+  # By Default uses Release Name, but can be overridden.  Which means each release is its own group of
+  # Schema Registry workers.  You can have multiple groups talking to same Kafka Cluster
+  overrideGroupId: ""
+  ## Additional Java arguments to pass to Kafka.
+  # schemaRegistryOpts: -Dfoo=bar
+
+
+## Provides schema registry ingress settings
+externalIngress:
+  ## Annotations for the ingress, if any alb.ingress.kubernetes.io/waf-acl-id:<web-acl-id>
+  annotations:
+    alb.ingress.kubernetes.io/tags: Stage=prod,App=Schema-Registry
+    alb.ingress.kubernetes.io/certificate-arn: <acm-arn>
+    alb.ingress.kubernetes.io/inbound-cidrs: ""
+    alb.ingress.kubernetes.io/load-balancer-attributes: access_logs.s3.enabled=true,access_logs.s3.bucket=prod-us-east-1,access_logs.s3.prefix=schema-registry,idle_timeout.timeout_seconds=600
+    external-dns.alpha.kubernetes.io/hostname: 
+  ## Hostname of the ingress
+  hostname: ""
+
+## Provides schema registry ingress settings
+internalIngress:
+  ## If true provide ingress to the schema registry
+  enabled: true
+  ## Annotations for the ingress, if any alb.ingress.kubernetes.io/waf-acl-id:<web-acl-id>
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/tags: Stage=prod,App=Schema-Registry
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/certificate-arn: <acm-arn>
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-Ext-2018-06
+    alb.ingress.kubernetes.io/load-balancer-attributes: access_logs.s3.enabled=true,access_logs.s3.bucket=prod-us-east-1,access_logs.s3.prefix=schema-registry,idle_timeout.timeout_seconds=600
+    external-dns.alpha.kubernetes.io/hostname: 
+    external-dns/zone: private
+  ## Hostname of the ingress
+  hostname: ""
+  ## Any additional labels to add to the ingress
+  labels: {}
+  tls:
+    enabled: false
+    secretName: schema-registry-tls
