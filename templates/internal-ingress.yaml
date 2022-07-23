@@ -1,0 +1,33 @@
+{{- if .Values.internalIngress.enabled }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "schema-registry.fullname" . }}-internal
+  labels:
+    app: {{ template "schema-registry.fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- if .Values.internalIngress.labels }}
+{{ toYaml .Values.internalIngress.labels | indent 4 }}
+{{- end }}
+{{- if .Values.internalIngress.annotations }}
+  annotations:
+{{ toYaml .Values.internalIngress.annotations | indent 4 }}
+{{- end }}
+spec:
+  rules:
+    - host: {{ .Values.internalIngress.hostname }}
+      http:
+        paths:
+          - path:
+            backend:
+              serviceName: {{ template "schema-registry.fullname" . }}
+              servicePort: {{ .Values.servicePort }}
+{{- if .Values.internalIngress.tls.enabled }}
+  tls:
+    - secretName: {{ .Values.internalIngress.tls.secretName }}
+      hosts:
+        - {{ .Values.internalIngress.hostname }}
+{{- end -}}
+{{ end -}}
