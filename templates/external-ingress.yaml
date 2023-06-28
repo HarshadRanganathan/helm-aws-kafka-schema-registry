@@ -1,5 +1,5 @@
 {{- if .Values.externalIngress.enabled }}
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ template "schema-registry.fullname" . }}-external
@@ -20,10 +20,13 @@ spec:
     - host: {{ .Values.externalIngress.hostname }}
       http:
         paths:
-          - path:
+          - path: /
+            pathType: Prefix
             backend:
-              serviceName: {{ template "schema-registry.fullname" . }}
-              servicePort: {{ .Values.servicePort }}
+              service:
+                name: {{ template "schema-registry.fullname" . }}
+                port:
+                  number: {{ .Values.servicePort }}
 {{- if .Values.externalIngress.tls.enabled }}
   tls:
     - secretName: {{ .Values.externalIngress.tls.secretName }}
